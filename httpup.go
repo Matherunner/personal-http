@@ -52,12 +52,28 @@ opacity: 0.3;
 font-weight: bold;
 }
 </style>
+<script>
+function setup() {
+	var fbtn = document.upform.filebtn, felem = document.upform.filename, subbtn = document.upform.submit;
+	fbtn.addEventListener("click", function(e) { felem.click() }, false);
+	felem.addEventListener("change", function(e) {
+		if (felem.files.length) {
+			fbtn.value = felem.files[0].name;
+			subbtn.disabled = false;
+		} else {
+			fbtn.value = "select file";
+			subbtn.disabled = true;
+		}
+	}, false);
+}
+window.addEventListener("load", setup, true);
+</script>
 <title>File upload</title>
 </head>
 <body>
-<form method="post" action="/" enctype="multipart/form-data">
-<input type="file" name="filename" onchange="this.form.filebtn.value = this.files[0].name; this.form.submit.disabled = false">
-<input type="button" class="mybtn" name="filebtn" value="select file" onclick="this.form.filename.click()">
+<form method="post" action="/" enctype="multipart/form-data" name="upform">
+<input type="file" name="filename">
+<input type="button" class="mybtn" name="filebtn" value="select file">
 <input type="submit" class="mybtn uploadbtn" name="submit" value="upload" disabled="true">
 </form>
 </body>`
