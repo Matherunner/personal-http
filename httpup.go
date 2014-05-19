@@ -28,7 +28,6 @@ display: none;
 background: #e8e8e8;
 border-radius: 4px;
 border: 1px solid #b1b1b1;
-box-shadow: 2px 2px 5px #dcdcdc;
 color: #444;
 display: block;
 font-size: small;
@@ -43,7 +42,8 @@ border: 1px solid #888;
 color: #111;
 }
 .mybtn:focus {
-border: 1px solid #4064bf;
+border: 1px solid #7dd4d3;
+box-shadow: 0 0 5px #86d7d4;
 }
 .mybtn:active:enabled {
 background: #ccc;
