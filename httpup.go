@@ -130,7 +130,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	portNum := flag.Uint("p", 8080, "port number to listen")
-	workingPath := flag.String("path", ".", "directory ")
+	workingPath := flag.String("path", ".", "directory to save files in")
 	flag.Parse()
 
 	os.Chdir(*workingPath)
