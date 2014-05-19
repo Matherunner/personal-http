@@ -5,3 +5,8 @@
 `httpup` does file uploads only.  It always displays a minimalistic upload interface to the end user.  This program can be used if you want a non-technical person to send files to you.
 
 Obviously, both programs require an open port to work properly.  Be sure to configure your firewall and NAT router.
+
+To build these programs, just do
+
+    go build httpserve.go
+    go build httpup.go
