@@ -45,6 +45,9 @@ color: #111;
 .mybtn:focus {
 border: 1px solid #4064bf;
 }
+.mybtn:active {
+background: #ccc;
+}
 .mybtn:disabled {
 opacity: 0.3;
 }
