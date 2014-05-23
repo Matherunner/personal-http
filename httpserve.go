@@ -77,7 +77,10 @@ text-decoration: underline;
 <thead><tr><th class="col-left">name</th><th class="col-right">size</th></tr></thead>
 <tbody>`
 
-func useGzip(mimeType string) bool {
+func useGzip(r *http.Request, mimeType string) bool {
+	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		return false
+	}
 	for _, v := range typesToGzip {
 		if strings.Contains(mimeType, v) {
 			return true
@@ -155,7 +158,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, fpath string, finfo os.Fi
 	defer file.Close()
 
 	extType := mime.TypeByExtension(filepath.Ext(fpath))
-	if useGzip(extType) {
+	if useGzip(r, extType) {
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Content-Type", extType)
 		gzwriter := gzip.NewWriter(w)
