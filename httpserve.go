@@ -35,7 +35,7 @@ func serveUpload(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("[%s] Failed to write upload form to client (%s)\n:",
 				r.RemoteAddr, err.Error())
-			return;
+			return
 		}
 	} else if r.Method == "POST" {
 		w.WriteHeader(http.StatusNoContent)
