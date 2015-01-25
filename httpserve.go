@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"html/template"
 	"io"
 	"log"
@@ -8,7 +9,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 )
+
+var storePath *string
 
 func logConnection(r *http.Request) {
 	log.Printf("[%s] %s %s\n", r.RemoteAddr, r.Method, r.URL)
@@ -67,15 +71,16 @@ func serveUpload(w http.ResponseWriter, r *http.Request) {
 		}
 		defer part.Close()
 
-		outfile, err := os.OpenFile(filepath.Base(part.FileName()),
-			os.O_WRONLY | os.O_CREATE | os.O_EXCL, 0600)
+		fileName := filepath.Join(*storePath, filepath.Base(part.FileName()))
+		outFile, err := os.OpenFile(fileName, os.O_WRONLY | os.O_CREATE | os.O_EXCL,
+			0600)
 		if err != nil {
 			log.Printf("[%s] Failed to create file (%s)\n", r.RemoteAddr, err.Error())
 			return
 		}
-		defer outfile.Close()
+		defer outFile.Close()
 
-		_, err = io.Copy(outfile, part)
+		_, err = io.Copy(outFile, part)
 		if err != nil {
 			log.Printf("[%s] Error occured when transferring \"%s\" (%s)\n",
 				r.RemoteAddr, part.FileName(), err.Error())
@@ -87,12 +92,16 @@ func serveUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	portNum := flag.Uint("p", 8080, "port number to open")
+	storePath = flag.String("store", ".", "path to store downloaded files")
+	flag.Parse()
+
 	http.HandleFunc("/", serveRoot)
 	http.HandleFunc("/list", serveList)
 	http.HandleFunc("/upload", serveUpload)
 
-	log.Println("Server started.")
-	err := http.ListenAndServe(":9090", nil)
+	log.Printf("Listening to port %d\n", *portNum)
+	err := http.ListenAndServe(":" + strconv.FormatUint(uint64(*portNum), 10), nil)
 	if err != nil {
 		log.Fatalf("Failed to listen to port (%s)\n", err.Error())
 	}
