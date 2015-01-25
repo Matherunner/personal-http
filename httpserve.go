@@ -33,7 +33,9 @@ func serveUpload(w http.ResponseWriter, r *http.Request) {
 
 		err = tmpl.Execute(w, nil)
 		if err != nil {
-			log.Printf("Failed to write upload form to clien (%s)\n:", err.Error())
+			log.Printf("[%s] Failed to write upload form to client (%s)\n:",
+				r.RemoteAddr, err.Error())
+			return;
 		}
 	} else if r.Method == "POST" {
 		w.WriteHeader(http.StatusNoContent)
