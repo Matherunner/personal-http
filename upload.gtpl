@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Send to file</title>
+<title>Send a file</title>
 <style>
 .mainbtn {
   display: block;
