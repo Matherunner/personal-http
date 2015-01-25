@@ -4,15 +4,26 @@ import (
 	"flag"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
+type EntryInfo struct {
+	Name string
+	Size int64
+}
+
 var storePath *string
+var rootPath *string
+var tmplListHead *template.Template
+var tmplListEntry *template.Template
+var tmplListFoot *template.Template
 
 func logConnection(r *http.Request) {
 	log.Printf("[%s] %s %s\n", r.RemoteAddr, r.Method, r.URL)
@@ -23,8 +34,47 @@ func serveRoot(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
-func serveList(w http.ResponseWriter, r *http.Request) {
+func serveDirList(w http.ResponseWriter, r *http.Request, filePath string) {
+	if r.URL.Path[len(r.URL.Path) - 1] != '/' {
+		http.Redirect(w, r, r.URL.Path + "/", http.StatusMovedPermanently)
+		return
+	}
+
+	fileInfos, err := ioutil.ReadDir(filePath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	tmplListHead.Execute(w, "Listing of " + strings.TrimPrefix(r.URL.Path, "/files"))
+	for _, v := range fileInfos {
+		entryInfo := EntryInfo{v.Name(), v.Size()}
+		if v.IsDir() {
+			entryInfo.Name += "/"
+		}
+		tmplListEntry.Execute(w, entryInfo)
+	}
+	tmplListFoot.Execute(w, nil)
+}
+
+func serveFiles(w http.ResponseWriter, r *http.Request) {
 	logConnection(r)
+	filePath := strings.TrimPrefix(r.URL.Path, "/files")
+	filePath = filepath.Join(*rootPath, filePath)
+	fileInfo, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if fileInfo.IsDir() {
+		serveDirList(w, r, filePath)
+	} else {
+
+	}
 }
 
 func serveUpload(w http.ResponseWriter, r *http.Request) {
@@ -94,14 +144,31 @@ func serveUpload(w http.ResponseWriter, r *http.Request) {
 func main() {
 	portNum := flag.Uint("p", 8080, "port number to open")
 	storePath = flag.String("store", ".", "path to store downloaded files")
+	rootPath = flag.String("root", ".", "root directory for serving files")
 	flag.Parse()
 
 	http.HandleFunc("/", serveRoot)
-	http.HandleFunc("/list", serveList)
+	http.HandleFunc("/files/", serveFiles)
 	http.HandleFunc("/upload", serveUpload)
 
+	var err error
+	tmplListHead, err = template.ParseFiles("filelist-head.gtpl")
+	if err != nil {
+		log.Fatalf("Failed to parse filelist-head.gtpl (%s)", err.Error())
+	}
+
+	tmplListEntry, err = template.ParseFiles("filelist-entry.gtpl")
+	if err != nil {
+		log.Fatalf("Failed to parse filelist-entry.gtpl (%s)", err.Error())
+	}
+
+	tmplListFoot, err = template.ParseFiles("filelist-foot.gtpl")
+	if err != nil {
+		log.Fatalf("Failed to parse filelist-foot.gtpl (%s)", err.Error())
+	}
+
 	log.Printf("Listening to port %d\n", *portNum)
-	err := http.ListenAndServe(":" + strconv.FormatUint(uint64(*portNum), 10), nil)
+	err = http.ListenAndServe(":" + strconv.FormatUint(uint64(*portNum), 10), nil)
 	if err != nil {
 		log.Fatalf("Failed to listen to port (%s)\n", err.Error())
 	}

@@ -1,0 +1,1 @@
+<tr><td class="nam"><a href="{{.Name}}">{{.Name}}</a></td><td class="siz">{{.Size}}</td></tr>
