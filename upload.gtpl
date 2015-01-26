@@ -59,6 +59,7 @@ function uploadfile(f) {
   var xhr = new XMLHttpRequest();
   var prog = document.getElementById("progress");
   prog.style.display = "block";
+  f.select.disabled = true;
   f.upload.disabled = true;
 
   xhr.upload.addEventListener("progress", function(e) {
@@ -69,6 +70,7 @@ function uploadfile(f) {
     if (xhr.readyState === 4) {
       prog.style.display = "none";
       prog.value = 0;
+      f.select.disabled = false;
       f.upload.disabled = false;
     }
   }, false);
