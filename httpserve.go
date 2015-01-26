@@ -57,6 +57,17 @@ func serveDirList(w http.ResponseWriter, r *http.Request, filePath string) {
 	tmplListFoot.Execute(w, nil)
 }
 
+func serveFile(w http.ResponseWriter, r *http.Request, filePath string, fileInfo os.FileInfo) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	http.ServeContent(w, r, filePath, fileInfo.ModTime(), file)
+}
+
 func serveFiles(w http.ResponseWriter, r *http.Request) {
 	logConnection(r)
 	filePath := strings.TrimPrefix(r.URL.Path, "/files")
@@ -73,7 +84,7 @@ func serveFiles(w http.ResponseWriter, r *http.Request) {
 	if fileInfo.IsDir() {
 		serveDirList(w, r, filePath)
 	} else {
-
+		serveFile(w, r, filePath, fileInfo)
 	}
 }
 
