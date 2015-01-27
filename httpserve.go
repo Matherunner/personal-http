@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"flag"
 	"html/template"
 	"io"
@@ -29,6 +30,16 @@ func logConnection(r *http.Request) {
 	log.Printf("[%s] %s %s\n", r.RemoteAddr, r.Method, r.URL)
 }
 
+func acceptGzip(acceptEnc string) bool {
+	encs := strings.Split(acceptEnc, ",")
+	for _, enc := range encs {
+		if strings.TrimSpace(enc) == "gzip" {
+			return true
+		}
+	}
+	return false
+}
+
 func serveRoot(w http.ResponseWriter, r *http.Request) {
 	logConnection(r)
 	w.WriteHeader(http.StatusNotFound)
@@ -46,15 +57,27 @@ func serveDirList(w http.ResponseWriter, r *http.Request, filePath string) {
 		return
 	}
 
-	tmplListHead.Execute(w, "Listing of " + strings.TrimPrefix(r.URL.Path, "/files"))
+	var writer io.Writer
+
+	if acceptGzip(r.Header.Get("Accept-Encoding")) {
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		gzipWriter := gzip.NewWriter(w)
+		writer = gzipWriter
+		defer gzipWriter.Close()
+	} else {
+		writer = w
+	}
+
+	tmplListHead.Execute(writer, "Listing of " + strings.TrimPrefix(r.URL.Path, "/files"))
 	for _, v := range fileInfos {
 		entryInfo := EntryInfo{v.Name(), v.Size()}
 		if v.IsDir() {
 			entryInfo.Name += "/"
 		}
-		tmplListEntry.Execute(w, entryInfo)
+		tmplListEntry.Execute(writer, entryInfo)
 	}
-	tmplListFoot.Execute(w, nil)
+	tmplListFoot.Execute(writer, nil)
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, filePath string, fileInfo os.FileInfo) {
