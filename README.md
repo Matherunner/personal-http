@@ -46,15 +46,17 @@ installed on A, then you can run
 
     $ httpserve -p 9090 -root /home/me/docs
 
-to serve the files in `/home/me/docs` via port 9090.  On B you will point the
-browser to `http://192.168.0.1:9090/files`.  A directory listing will be
-produced, with hyperlinks to each file.  Suppose `httpserve` is installed on B
-instead.  You would run
+to serve the files in `/home/me/docs` via port 9090, assuming the file is
+stored in `/home/me/docs`.  On B you will point the browser to
+`http://192.168.0.1:9090/files/`.  A directory listing will be produced, with
+hyperlinks to each file.  Suppose `httpserve` is installed on B instead.  You
+would run
 
     $ httpserve -p 9090 -store /home/me/docs
 
-to send a minimalistic upload form to A via port 9090.  Then select the 10 GB
-file on A and send it.  The file will be stored in `/home/me/docs`.
+to send a minimalistic upload form to A via port 9090.  A can receive the form
+by going to `http://192.168.0.2:9090/upload`.  Then select the 10 GB file on A
+and send it.  The file will be stored in `/home/me/docs`.
 
 ## How to build
 
